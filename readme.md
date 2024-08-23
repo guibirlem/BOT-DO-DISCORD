@@ -33,4 +33,4 @@ Para que o bot funcione corretamente, você precisa instalar as seguintes depend
 npm install
 
 e ter instalado todas dependencias
-após isso é so abrir o terminal e dar o comando node inex.js para rodar o bot !
+após isso é so abrir o terminal e dar o comando node index.js para rodar o bot !
