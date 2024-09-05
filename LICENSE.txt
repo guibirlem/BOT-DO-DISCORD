@@ -2,4 +2,3 @@ MIT License
 
 Copyright (c) [2024] [@guibirlem]
 
-Aqui você inclui o texto da licença MIT.
