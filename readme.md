@@ -5,15 +5,17 @@ Este é um bot para Discord que oferece diversas funcionalidades, incluindo um j
 
 ## Funcionalidades
 
-- **!ping**: Responde com "pong".
-- **!ajuda**: Exibe uma lista de comandos disponíveis.
-- **!membros**: Lista todos os membros do servidor.
-- **!rps**: Inicia um jogo de Pedra, Papel e Tesoura.
-- **!reset**: Limpa dados de RPS e ranking (disponível apenas para o dono do bot).
-- **!rpsranking**: Exibe o ranking de vitórias, derrotas e empates no jogo de RPS.
-- **!imagem <termo>**: Pesquisa uma imagem na internet.
-- **!gif <termo>**: Pesquisa um GIF na internet.
-- **!userinfo <@usuario>**: Exibe informações sobre o usuário mencionado.
+- **!ping** - responde com "pong"
+- **!rps** - faz um jogo de pedra papel e tesoura com ranking
+- **!imagem <termo>** - pesquisa uma imagem na internet
+- **!gif <termo>** - pesquisa um gif na internet
+- **!userinfo <@usuario>** - exibe informações sobre o usuário mencionado
+- **!rpsranking** - mostra o ranking de vitórias, derrotas e empates
+- **!membros** - lista todos os membros do servidor
+- **!miranda** - MANDA O MIRANDA GANKA TOP
+- **!aniversario** - salva o seu aniversario no bot :)
+- **!aniversarios** - lista todos os aniversarios salvos no bot
+- **!dia** - fala o dia e a hora
 
 ## Dependências
 
@@ -30,7 +32,7 @@ Para que o bot funcione corretamente, você precisa instalar as seguintes depend
    ```bash
    git clone https://github.com/guibirlem/BOT-DO-DISCORD
 
-npm install
+##npm install
 
 e ter instalado todas dependencias
 após isso é so abrir o terminal e dar o comando node index.js para rodar o bot !
