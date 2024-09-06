@@ -21,7 +21,7 @@ const GIPHY_API_KEY = 'jcB3EFrD0zO0VJfKQkqxSIek5P68GKnH'; // chave api do  acess
 const PANELA_ROLE_NAME = 'Panela'; // bot verifica se x pessoa tem x cargo
 const BOT_ID = '1275905234123624470'; // id do discord do bot
 
-//let rpsGames = new Map(); // metodo antigo de armazenamento do rps
+let rpsGames = new Map(); // metodo antigo de armazenamento do rps
 let rpsStats = {}; // armazena estatísticas do jogo RPS
 const statsFilePath = path.join(__dirname, 'rpsStats.json');
 const lastReplyTimes = new Map(); // mapa de etempo para o bot ficar falando que continua online
