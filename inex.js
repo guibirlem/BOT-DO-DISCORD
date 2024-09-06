@@ -2,6 +2,7 @@ const { Client, GatewayIntentBits } = require('discord.js');
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
+const cron = require('node-cron');
 
 
 
@@ -21,8 +22,9 @@ const GIPHY_API_KEY = 'jcB3EFrD0zO0VJfKQkqxSIek5P68GKnH'; // chave api do  acess
 const PANELA_ROLE_NAME = 'Panela'; // bot verifica se x pessoa tem x cargo
 const BOT_ID = '1275905234123624470'; // id do discord do bot
 
-let rpsGames = new Map(); // metodo antigo de armazenamento do rps
+let rpsGames = new Map(); // Armazena o estado do jogo RPS para cada usuário
 let rpsStats = {}; // armazena estatísticas do jogo RPS
+let birthdays = {};
 const statsFilePath = path.join(__dirname, 'rpsStats.json');
 const lastReplyTimes = new Map(); // mapa de etempo para o bot ficar falando que continua online
 const REPLY_INTERVAL_MS = 60 * 1000; // 1 minuto em milissegundos 
@@ -37,40 +39,74 @@ function loadStats() {
         rpsStats = {};
     }
 }
+if (fs.existsSync('./birthdays.json')) {
+    birthdays = JSON.parse(fs.readFileSync('./birthdays.json'));
+}
 
 // função para salvar o ranking no arquivo JSON
 function saveStats() {
     fs.writeFileSync(statsFilePath, JSON.stringify(rpsStats, null, 2));
 }
 
-client.once('ready', () => {
+client.once('ready', async () => {
     console.log('o bot da panela está online');
 
-    
     loadStats(); 
     
-   
     if (!rpsStats[BOT_ID]) {
         rpsStats[BOT_ID] = { victories: 0, losses: 0, draws: 0, totalGames: 0 };
     }
 
-    // mensagem para o canal de comandos quando o bot estiver online
-    const channelId = '1014602859481935872'; // ID do canal de comandos  //1275954018841137298 //comandos panela 1014602859481935872
+    const channelId = '1014602859481935872'; // ID do canal de comandos
     const channel = client.channels.cache.get(channelId);
+    
+    const birthdayChannelId = '1281689598954573904'; // ID do canal de aniversários
+    const birthdayChannel = client.channels.cache.get(birthdayChannelId); // Obtém o canal de aniversários
 
     if (channel) {
-        channel.send('estou online e pronto pra faze nada');
+        // Obter a data e hora atuais
+        const now = new Date();
+        const day = String(now.getDate()).padStart(2, '0');
+        const month = String(now.getMonth() + 1).padStart(2, '0'); // Janeiro é 0
+        const year = now.getFullYear();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+
+        const currentDate = `${day}/${month}/${year}`;
+        const currentTime = `${hours}:${minutes}:${seconds}`;
+
+        // Enviar a mensagem com a hora atual no canal de comandos
+        channel.send(`estou online e pronto pra faze nada. hora atual: ${currentDate} ${currentTime}`);
         
-        //  intervalo para enviar uma mensagem a cada 4 horas
+        // Intervalo para enviar uma mensagem a cada 4 horas no canal de comandos
         setInterval(() => {
             channel.send('continuo online ainda');
         }, 4 * 60 * 60 * 1000); // 4 horas em milissegundos
     } else {
-        console.error('canal não encontrado');
+        console.error('canal de comandos não encontrado');
+    }
+
+    // Verificação de aniversários ao iniciar o bot
+    const today = new Date();
+    const currentBirthdayDate = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}`;
+
+    if (birthdayChannel) {
+        for (const userId in birthdays) {
+            if (birthdays[userId] === currentBirthdayDate) {
+                try {
+                    const user = await client.users.fetch(userId);
+                    birthdayChannel.send(`Feliz aniversário, ${user}! 🎉🎂 `);
+                    console.log(`hoje é aniversário do @${user.username}, mandando parabéns para o usuário`); 
+                } catch (error) {
+                    console.error(`Erro ao mencionar o usuário: ${error}`);
+                }
+            }
+        }
+    } else {
+        console.error('canal de aniversários bugo porraaa');
     }
 });
-
-
 
 client.on('messageCreate', async message => {
     if (message.author.bot) return;
@@ -91,8 +127,24 @@ client.on('messageCreate', async message => {
             }
             return;
         }
+        
 
         //primeiros comandos do bot
+            if (message.content === '!dia') {
+                const now = new Date();
+                const day = String(now.getDate()).padStart(2, '0');
+                const month = String(now.getMonth() + 1).padStart(2, '0'); // janeiro é 0 como toda lista em 0
+                const year = now.getFullYear();
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                const seconds = String(now.getSeconds()).padStart(2, '0');
+        
+                const currentDate = `${day}/${month}/${year}`;
+                const currentTime = `${hours}:${minutes}:${seconds}`;
+        
+                message.reply(`hoje é ${currentDate} e agora são ${currentTime}`);
+            };
+        
         
         if (content === '!ping') {
             await message.reply('Pong');
@@ -127,8 +179,44 @@ client.on('messageCreate', async message => {
             console.log(`Enviado "comando do miranda" para ${message.author.tag} no canal ${message.channel.name}`);
             return;
         }
-
-        // !ajuda
+        if (message.content === '!aniversario') {
+            const userId = message.author.id;
+            const filter = response => response.author.id === userId;
+    
+            // solicita a data de aniversário do usuário
+            await message.reply('insira sua data de aniversário no formato dd/mm.');
+    
+            // aguarda a resposta do usuário
+            try {
+                const collected = await message.channel.awaitMessages({
+                    filter,
+                    max: 1,
+                    time: 30000, // 30 segundos para responder
+                    errors: ['time']
+                });
+    
+                const response = collected.first();
+                const birthday = response.content;
+    
+                // valida o formato da data (dd/mm)
+                const regex = /^\d{2}\/\d{2}$/;
+                if (!regex.test(birthday)) {
+                    return message.reply('Use dd/mm.');
+                }
+    
+                // salva a data no objeto JSON
+                birthdays[userId] = birthday;
+                fs.writeFileSync('./birthdays.json', JSON.stringify(birthdays, null, 2));
+    
+                message.reply(`aniversário salvo: ${birthday}`);
+                console.log(`enviado "aniversario salvo" para ${message.author.tag} no canal ${message.channel.name}`);
+            } catch (error) {
+                message.reply('ACABOU O TEMPO.');
+            }
+        };
+        
+        
+        
         if (content === '!ajuda') {
             await message.reply(`**comandos disponíveis:**
 1. **!ping** - responde com "pong"
@@ -138,11 +226,14 @@ client.on('messageCreate', async message => {
 5. **!userinfo <@usuario>** - exibe informações sobre o usuário mencionado
 6. **!rpsranking** - mostra o ranking de vitórias, derrotas e empates
 7. **!membros** - lista todos os membros do servidor
-8. **!miranda** - MANDA O MIRANDA GANKA TOP `);
+8. **!miranda** - MANDA O MIRANDA GANKA TOP
+9. **!aniversario** - salva o seu aniversario no bot :)
+10. **!aniversarios** - lista todos os aniversarios salvos no bot
+11. **!dia** - fala o dia e a hora
+`);
 console.log(`Enviado "!ajuda etc" para ${message.author.tag} no canal ${message.channel.name}`);
             return;
         }
-
         // comando !membros para listar todos os membros do servidor
         if (content === '!membros') {
             try {
@@ -161,7 +252,6 @@ console.log(`Enviado "!ajuda etc" para ${message.author.tag} no canal ${message.
             console.log(`Enviado "!membros etc" para ${message.author.tag} no canal ${message.channel.name}`);
             return;
         }
-
         // !rps para iniciar o jogo
         if (content === '!rps') {
             rpsGames.set(message.author.id, { waitingForResponse: true });
@@ -169,7 +259,6 @@ console.log(`Enviado "!ajuda etc" para ${message.author.tag} no canal ${message.
             console.log(`Enviado "escolhe ai, animal: pedra, papel ou tesoura" para ${message.author.tag} no canal ${message.channel.name}`);
             return;
         }
-
         // !reset para limpar dados de RPS e ranking
         if (content === '!reset' && message.author.id === ownerId) {
             rpsStats = {};
@@ -179,44 +268,6 @@ console.log(`Enviado "!ajuda etc" para ${message.author.tag} no canal ${message.
             console.log(`Enviado "os dados de RPS e ranking foram limpos" para ${message.author.tag} no canal ${message.channel.name}`);
             return;
         }
-
-// Comando !rpsranking para exibir o ranking de RPS sem incluir o bot
-/*if (content === '!rpsranking') {
-    
-    const sortedStats = Object.entries(rpsStats)
-        .filter(([userId]) => userId !== BOT_ID) // Remove o bot do ranking
-        .map(([userId, stats]) => {
-            const totalGames = stats.victories + stats.losses;
-            const winPercentage = totalGames > 0 ? (stats.victories / totalGames) * 100 : 0;
-            return { userId, stats, winPercentage };
-        })
-        .sort((a, b) => b.winPercentage - a.winPercentage);
-
-    let rankingMessage = 'Ranking de RPS:\n';
-    let rank = 1;
-
-    for (const { userId, stats, winPercentage } of sortedStats) {
-        try {
-            const user = await client.users.fetch(userId);
-            const userName = user.username;
-            const totalGames = stats.victories + stats.losses + stats.draws;
-
-            // Mostrar ranking, nome do usuário e porcentagem de vitórias
-            rankingMessage += `(${rank}) ${userName} - ${stats.victories} vitórias (${winPercentage.toFixed(2)}%), ${stats.losses} derrotas, ${stats.draws} empates, ${totalGames} partidas\n`;
-
-            rank++;
-        } catch (error) {
-            console.error('Erro ao buscar informações do usuário:', error);
-            rankingMessage += `(${rank}) Usuário <@${userId}> - Erro ao buscar nome\n`;
-            rank++;
-        }
-    }
-
-    await message.reply(rankingMessage || 'ninguém jogou ainda, tá tudo zerado');
-}
-*/
-
-
 // !rpsranking para exibir o ranking de RPS sem incluir o bot
 if (content === '!rpsranking') {
     
@@ -306,7 +357,6 @@ if (content === '!rpsranking1') {
         }
     }
 }
-
 // comando !rank para exibir o ranking de RPS mencionando os usuários e incluindo o bot
 if (content === '!rank') {
     // bot no ranking
@@ -340,49 +390,6 @@ if (content === '!rank') {
 
     await message.reply(rankingMessage || 'ninguém jogou ainda, tá tudo zerado');
 }
-
-
-// if (sortedStats[0] && sortedStats[0][0] === BOT_ID) {
-//     const response = await axios.get('https://api.giphy.com/v1/gifs/search', {
-//         params: {
-//             api_key: GIPHY_API_KEY,
-//             q: 'yasuo',
-//             limit: 1
-//         }
-//     });
-//     const gifUrl = response.data.data[0]?.images.original.url;
-//     await message.channel.send(gifUrl || 'não achei nenhum gif');
-// }
-
-
-
-// if (sortedStats[0] && sortedStats[0][0] === BOT_ID) {
-//     const response = await axios.get('https://api.giphy.com/v1/gifs/search', {
-//         params: {
-//             api_key: GIPHY_API_KEY,
-//             q: 'yasuo',
-//             limit: 1
-//         }
-//     });
-//     const gifUrl = response.data.data[0]?.images.original.url;
-//     await message.channel.send(gifUrl || 'não achei nenhum gif');
-// }
-
-
-
-// if (sortedStats[0] && sortedStats[0][0] === BOT_ID) {
-//     const response = await axios.get('https://api.giphy.com/v1/gifs/search', {
-//         params: {
-//             api_key: GIPHY_API_KEY,
-//             q: 'yasuo',
-//             limit: 1
-//         }
-//     });
-//     const gifUrl = response.data.data[0]?.images.original.url;
-//     await message.channel.send(gifUrl || 'não achei nenhum gif');
-// }
-
-
         // comando !imagem <termo> 
         if (content.startsWith('!imagem ')) {
             const searchTerm = content.slice(8).trim();
@@ -443,24 +450,48 @@ if (content === '!rank') {
         }
 
         //  !userinfo <@usuario> para exibir informações do usuário
+            if (content === '!aniversarios') {
+                if (Object.keys(birthdays).length === 0) {
+                    message.reply('Nenhum aniversário salvo.');
+                } else {
+                    const birthdayList = await Promise.all(
+                        Object.entries(birthdays).map(async ([id, date]) => {
+                            try {
+                                const user = await client.users.fetch(id);
+                                return `${user.username}: ${date}`;
+                            } catch (error) {
+                                console.error(`Não foi possível buscar o usuário com ID ${id}: ${error}`);
+                                return `Usuário com ID ${id} não encontrado: ${date}`;
+                            }
+                        })
+                    ).then(entries => entries.join('\n'));
+            
+                    message.reply(`Aniversários salvos:\n${birthdayList}`);
+                }
+                console.log(`Enviado aniversários salvos para ${message.author.tag} no canal ${message.channel.name}`);
+                return;
+            }
 if (content.startsWith('!userinfo')) {
     const user = message.mentions.users.first() || message.author;
     const member = message.guild.members.cache.get(user.id);
     const role = message.guild.roles.cache.find(role => role.name === PANELA_ROLE_NAME);
     const hasPanelaRole = role && member.roles.cache.has(role.id);
     const roleMessage = hasPanelaRole ? 'esse é da panela' : 'esse tá invadindo a panela';
-    
+
     const userStats = rpsStats[user.id] || { totalGames: 0, victories: 0, losses: 0, draws: 0 };
     const totalGames = userStats.totalGames; 
     
+    // puxa o aniversario
+    const birthday = birthdays[user.id] || 'Não informado';
+
     await message.reply(`${user.username}'s avatar: ${user.displayAvatarURL({ dynamic: true })}
 - jogos de RPS: ${totalGames} partidas
-- ${roleMessage}`);
-console.log(`Enviado userinfo para ${message.author.tag} no canal ${message.channel.name}`);
+- ${roleMessage}
+- Aniversário: ${birthday}`);
+    
+    console.log(`Enviado userinfo para ${message.author.tag} no canal ${message.channel.name}`);
     return;
 }
-
-
         // verificacao para RPS (pedra, papel, tesoura)
         if (rpsGames.has(message.author.id) && rpsGames.get(message.author.id).waitingForResponse) {
             const userChoice = content;
@@ -523,5 +554,5 @@ console.log(`Enviado userinfo para ${message.author.tag} no canal ${message.chan
         }
     }
 });
-//client.login(''); 
+
 client.login('');
