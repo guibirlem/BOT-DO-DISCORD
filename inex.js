@@ -2,7 +2,6 @@ const { Client, GatewayIntentBits } = require('discord.js');
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
-const cron = require('node-cron');
 
 
 
@@ -16,10 +15,10 @@ const client = new Client({
     ]
 });
 
-const ownerId = '226913332463009793'; // meu id de dono
-const UNSPLASH_ACCESS_KEY = 'cDtj6FU00rFerG7wgs9tCitN5B-P6_vF3DeDCqVakGQ'; // chave api do unsplash
-const GIPHY_API_KEY = 'jcB3EFrD0zO0VJfKQkqxSIek5P68GKnH'; // chave api do  acesso do Giphy
-const PANELA_ROLE_NAME = 'Panela'; // bot verifica se x pessoa tem x cargo
+const ownerId = '226913332463009793'; // meu id de dono // você muda para o seu dai
+const UNSPLASH_ACCESS_KEY = 'AQUI A CHAVE DA API DO UNSPLASH FOTOS'; // chave api do unsplash
+const GIPHY_API_KEY = 'AQUI A CHAVE DA GIF '; // chave api do  acesso do Giphy
+const PANELA_ROLE_NAME = 'Panela'; // bot verifica se x pessoa tem x cargo NESSE CASO está verificando se é o cargo panela
 const BOT_ID = '1275905234123624470'; // id do discord do bot
 
 let rpsGames = new Map(); // Armazena o estado do jogo RPS para cada usuário
@@ -120,7 +119,7 @@ client.on('messageCreate', async message => {
 
             // verifica se o intervalo de tempo foi respeitado
             if (!lastReplyTime || (now - lastReplyTime) >= REPLY_INTERVAL_MS) {
-                await message.reply('fala judeu');
+                await message.reply('fala meu brother');
                 console.log(`${message.author.tag} Mencionou o bot no canal ${message.channel.name}`);
                 lastReplyTimes.set(message.author.id, now); 
                 return;
@@ -161,7 +160,7 @@ client.on('messageCreate', async message => {
         const lowerCaseContent = content.toLowerCase();
 
         if (trriggerPhrases.some(phrase => lowerCaseContent.includes(phrase))) {
-         await message.reply('RACIST');
+         await message.reply('RACISTA');
          console.log(`Enviado "RACIST" para ${message.author.tag} no canal ${message.channel.name}`);
          return;
 }
@@ -175,7 +174,7 @@ client.on('messageCreate', async message => {
         }
 
         if (content === '!miranda') {
-            await message.channel.send('<@386968770750447628> se fuder ganka top lixo'); // ID do MIRANDA
+            await message.channel.send('<@386968770750447628>  ganka top lixo'); // ID do MIRANDA
             console.log(`Enviado "comando do miranda" para ${message.author.tag} no canal ${message.channel.name}`);
             return;
         }
@@ -255,7 +254,7 @@ console.log(`Enviado "!ajuda etc" para ${message.author.tag} no canal ${message.
         // !rps para iniciar o jogo
         if (content === '!rps') {
             rpsGames.set(message.author.id, { waitingForResponse: true });
-            await message.reply('escolhe ai, animal: pedra, papel ou tesoura');
+            await message.reply('escolhe ai: pedra, papel ou tesoura');
             console.log(`Enviado "escolhe ai, animal: pedra, papel ou tesoura" para ${message.author.tag} no canal ${message.channel.name}`);
             return;
         }
@@ -394,7 +393,7 @@ if (content === '!rank') {
         if (content.startsWith('!imagem ')) {
             const searchTerm = content.slice(8).trim();
             if (!searchTerm) {
-                await message.reply('manda o que você quer buscar, porra');
+                await message.reply('manda o que você quer buscar logo');
                 console.log(`Enviado "!iamgem" para ${message.author.tag} no canal ${message.channel.name}`);
                 return;
             }
@@ -413,8 +412,8 @@ if (content === '!rank') {
                     console.log(`Enviado achou imagem mandou" para ${message.author.tag} no canal ${message.channel.name}`);
                     
                 } else {
-                    await message.reply('não achei nenhuma imagem, caralho');
-                    console.log(`Enviado nao achei nenhuma imagem caralho" para ${message.author.tag} no canal ${message.channel.name}`);
+                    await message.reply('não achei nenhuma imagem');
+                    console.log(`Enviado nao achei nenhuma imagem" para ${message.author.tag} no canal ${message.channel.name}`);
                     console.log(`Enviado "nao achou imagem" para ${message.author.tag} no canal ${message.channel.name}`);
                 }
             } catch (error) {
@@ -428,8 +427,8 @@ if (content === '!rank') {
         if (content.startsWith('!gif ')) {
             const searchTerm = content.slice(5).trim();
             if (!searchTerm) {
-                await message.reply('manda o que você quer buscar, porra');
-                console.log(`Enviado manda oque voce quer buscar porra" para ${message.author.tag} no canal ${message.channel.name}`);
+                await message.reply('manda o que você quer buscar');
+                console.log(`Enviado manda oque voce quer buscar " para ${message.author.tag} no canal ${message.channel.name}`);
                 return;
             }
             try {
@@ -517,13 +516,13 @@ if (content.startsWith('!userinfo')) {
                 (userChoice === 'papel' && botChoice === 'pedra') ||
                 (userChoice === 'tesoura' && botChoice === 'papel')
             ) {
-                resultMessage = 'você ganhou, CARALHO AZAR DA PORRA.';
+                resultMessage = 'você ganhou, AZAR.';
                 console.log(`Enviado "bot perdeu" para ${message.author.tag} no canal ${message.channel.name}`);
                 rpsStats[message.author.id] = rpsStats[message.author.id] || { victories: 0, losses: 0, draws: 0, totalGames: 0 };
                 rpsStats[message.author.id].victories++;
                 rpsStats[BOT_ID].losses++;
             } else {
-                resultMessage = 'perdeu, lixo fudido.';
+                resultMessage = 'perdeu, FACIL..';
                 console.log(`Enviado "bot ganhou" para ${message.author.tag} no canal ${message.channel.name}`);
                 rpsStats[message.author.id] = rpsStats[message.author.id] || { victories: 0, losses: 0, draws: 0, totalGames: 0 };
                 rpsStats[message.author.id].losses++;
@@ -555,4 +554,4 @@ if (content.startsWith('!userinfo')) {
     }
 });
 
-client.login('');
+client.login('aqui a chave do seu bot.');
