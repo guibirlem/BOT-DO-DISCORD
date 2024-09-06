@@ -15,20 +15,20 @@ const client = new Client({
     ]
 });
 
-const ownerId = '226913332463009793'; // Seu ID como dono do bot
-const UNSPLASH_ACCESS_KEY = 'cDtj6FU00rFerG7wgs9tCitN5B-P6_vF3DeDCqVakGQ'; // Chave de acesso do Unsplash
-const GIPHY_API_KEY = 'jcB3EFrD0zO0VJfKQkqxSIek5P68GKnH'; // Chave de acesso do Giphy
-const PANELA_ROLE_NAME = 'Panela'; // Nome do cargo que o bot verificará
-const BOT_ID = '1275905234123624470'; // ID do bot
+const ownerId = '226913332463009793'; // meu id de dono
+const UNSPLASH_ACCESS_KEY = 'cDtj6FU00rFerG7wgs9tCitN5B-P6_vF3DeDCqVakGQ'; // chave api do unsplash
+const GIPHY_API_KEY = 'jcB3EFrD0zO0VJfKQkqxSIek5P68GKnH'; // chave api do  acesso do Giphy
+const PANELA_ROLE_NAME = 'Panela'; // bot verifica se x pessoa tem x cargo
+const BOT_ID = '1275905234123624470'; // id do discord do bot
 
-let rpsGames = new Map(); // Armazena o estado do jogo RPS para cada usuário
-let rpsStats = {}; // Armazena estatísticas do jogo RPS
+//let rpsGames = new Map(); // metodo antigo de armazenamento do rps
+let rpsStats = {}; // armazena estatísticas do jogo RPS
 const statsFilePath = path.join(__dirname, 'rpsStats.json');
-const lastReplyTimes = new Map(); // Map para rastrear o tempo da última resposta
-const REPLY_INTERVAL_MS = 60 * 1000; // 1 minuto em milissegundos
+const lastReplyTimes = new Map(); // mapa de etempo para o bot ficar falando que continua online
+const REPLY_INTERVAL_MS = 60 * 1000; // 1 minuto em milissegundos 
 
 
-// Função para carregar o ranking do arquivo JSON
+// função para carregar o ranking do arquivo JSON
 function loadStats() {
     if (fs.existsSync(statsFilePath)) {
         const data = fs.readFileSync(statsFilePath);
@@ -38,7 +38,7 @@ function loadStats() {
     }
 }
 
-// Função para salvar o ranking no arquivo JSON
+// função para salvar o ranking no arquivo JSON
 function saveStats() {
     fs.writeFileSync(statsFilePath, JSON.stringify(rpsStats, null, 2));
 }
@@ -46,22 +46,22 @@ function saveStats() {
 client.once('ready', () => {
     console.log('o bot da panela está online');
 
-    // Carrega as estatísticas do arquivo JSON
+    
     loadStats(); 
     
-    // Verifica se as estatísticas do bot estão definidas
+   
     if (!rpsStats[BOT_ID]) {
         rpsStats[BOT_ID] = { victories: 0, losses: 0, draws: 0, totalGames: 0 };
     }
 
-    // Envia uma mensagem para o canal de comandos quando o bot estiver online
+    // mensagem para o canal de comandos quando o bot estiver online
     const channelId = '1014602859481935872'; // ID do canal de comandos  //1275954018841137298 //comandos panela 1014602859481935872
     const channel = client.channels.cache.get(channelId);
 
     if (channel) {
         channel.send('estou online e pronto pra faze nada');
         
-        // Configura um intervalo para enviar uma mensagem a cada 4 horas
+        //  intervalo para enviar uma mensagem a cada 4 horas
         setInterval(() => {
             channel.send('continuo online ainda');
         }, 4 * 60 * 60 * 1000); // 4 horas em milissegundos
@@ -77,22 +77,22 @@ client.on('messageCreate', async message => {
 
     try {
         const content = message.content.toLowerCase();
-         // Verifica se a mensagem menciona o bot e não é de um bot
+         // verifica se a mensagem menciona o bot e não é de um bot
          if (message.mentions.has(client.user) && !message.author.bot) {
             const now = Date.now();
             const lastReplyTime = lastReplyTimes.get(message.author.id);
 
-            // Verifica se o intervalo de tempo foi respeitado
+            // verifica se o intervalo de tempo foi respeitado
             if (!lastReplyTime || (now - lastReplyTime) >= REPLY_INTERVAL_MS) {
                 await message.reply('fala judeu');
                 console.log(`${message.author.tag} Mencionou o bot no canal ${message.channel.name}`);
-            return;
-                lastReplyTimes.set(message.author.id, now); // Atualiza o tempo da última resposta
+                lastReplyTimes.set(message.author.id, now); 
+                return;
             }
             return;
         }
 
-        // Comando !ping
+        //primeiros comandos do bot
         
         if (content === '!ping') {
             await message.reply('Pong');
@@ -162,7 +162,7 @@ console.log(`Enviado "!ajuda etc" para ${message.author.tag} no canal ${message.
             return;
         }
 
-        // Comando !rps para iniciar o jogo
+        // !rps para iniciar o jogo
         if (content === '!rps') {
             rpsGames.set(message.author.id, { waitingForResponse: true });
             await message.reply('escolhe ai, animal: pedra, papel ou tesoura');
@@ -170,7 +170,7 @@ console.log(`Enviado "!ajuda etc" para ${message.author.tag} no canal ${message.
             return;
         }
 
-        // Comando !reset para limpar dados de RPS e ranking
+        // !reset para limpar dados de RPS e ranking
         if (content === '!reset' && message.author.id === ownerId) {
             rpsStats = {};
             rpsStats[BOT_ID] = { victories: 0, losses: 0, draws: 0, totalGames: 0 };
@@ -182,7 +182,7 @@ console.log(`Enviado "!ajuda etc" para ${message.author.tag} no canal ${message.
 
 // Comando !rpsranking para exibir o ranking de RPS sem incluir o bot
 /*if (content === '!rpsranking') {
-    // Filtra o ranking para não incluir o bot
+    
     const sortedStats = Object.entries(rpsStats)
         .filter(([userId]) => userId !== BOT_ID) // Remove o bot do ranking
         .map(([userId, stats]) => {
@@ -217,9 +217,9 @@ console.log(`Enviado "!ajuda etc" para ${message.author.tag} no canal ${message.
 */
 
 
-// Comando !rpsranking para exibir o ranking de RPS sem incluir o bot
+// !rpsranking para exibir o ranking de RPS sem incluir o bot
 if (content === '!rpsranking') {
-    // Filtra o ranking para não incluir o bot
+    
     const sortedStats = Object.entries(rpsStats)
         .filter(([userId]) => userId !== BOT_ID) // Remove o bot do ranking
         .map(([userId, stats]) => {
@@ -238,7 +238,7 @@ if (content === '!rpsranking') {
             const userName = user.username;
             const totalGames = stats.victories + stats.losses + stats.draws;
 
-            // Mostrar ranking, nome do usuário e porcentagem de vitórias
+            // logica para mostrar o rank de todos
             rankingMessage += `(${rank}) ${userName} - ${stats.victories} vitórias (${winPercentage.toFixed(2)}%), ${stats.losses} derrotas, ${stats.draws} empates, ${totalGames} partidas\n`;
 
             rank++;
@@ -254,9 +254,9 @@ if (content === '!rpsranking') {
     console.log(`Enviado "rank de rps" para ${message.author.tag} no canal ${message.channel.name}`);
 }
 
-// Comando !rpsranking1 para exibir o ranking de RPS incluindo o bot
+// aqui mostra o bot no ranking
 if (content === '!rpsranking1') {
-    // Inclui o bot no ranking
+    // bot 
     const sortedStats = Object.entries(rpsStats)
         .map(([userId, stats]) => {
             const totalGames = stats.victories + stats.losses;
@@ -274,7 +274,7 @@ if (content === '!rpsranking1') {
             const userName = user.username;
             const totalGames = stats.victories + stats.losses + stats.draws;
 
-            // Mostrar ranking, nome do usuário e porcentagem de vitórias
+            // mostrar rank, nome do usuario e porcentagem de vitórias
             rankingMessage += `(${rank}) ${userName} - ${stats.victories} vitórias (${winPercentage.toFixed(2)}%), ${stats.losses} derrotas, ${stats.draws} empates, ${totalGames} partidas\n`;
             console.log(`Enviado "!rpsranking1" para ${message.author.tag} no canal ${message.channel.name}`);
             rank++;
@@ -285,9 +285,9 @@ if (content === '!rpsranking1') {
         }
     }
 
-    // Envia a mensagem de ranking
+    // nunca vai ta zerado pq o bot ja ta no json mas so pra garantir
     await message.reply(rankingMessage || 'ninguém jogou ainda, tá tudo zerado');
-    // Verifica se o bot está em primeiro lugar e envia um GIF
+    // MELHOR LOGICA DO BOT // IF BOT == 1 MANDAR GIF YASUO
     if (sortedStats[0] && sortedStats[0].userId === BOT_ID) {
         try {
             const response = await axios.get('https://api.giphy.com/v1/gifs/search', {
@@ -307,9 +307,9 @@ if (content === '!rpsranking1') {
     }
 }
 
-// Comando !rank para exibir o ranking de RPS mencionando os usuários e incluindo o bot
+// comando !rank para exibir o ranking de RPS mencionando os usuários e incluindo o bot
 if (content === '!rank') {
-    // Inclui o bot no ranking
+    // bot no ranking
     const sortedStats = Object.entries(rpsStats)
         .map(([userId, stats]) => {
             const totalGames = stats.victories + stats.losses;
@@ -327,7 +327,7 @@ if (content === '!rank') {
             const userName = user.username;
             const totalGames = stats.victories + stats.losses + stats.draws;
 
-            // Mostrar ranking, menção do usuário e porcentagem de vitórias
+            // mostrar rank, menção do usuário e porcentagem de vitórias
             rankingMessage += `(${rank}) <@${userId}> - ${userName} - ${stats.victories} vitórias (${winPercentage.toFixed(2)}%), ${stats.losses} derrotas, ${stats.draws} empates, ${totalGames} partidas\n`;
             console.log(`Enviado "!rank" para ${message.author.tag} no canal ${message.channel.name}`);
             rank++;
@@ -341,7 +341,7 @@ if (content === '!rank') {
     await message.reply(rankingMessage || 'ninguém jogou ainda, tá tudo zerado');
 }
 
-// Bot em primeiro (opcional, se quiser uma mensagem diferente)
+
 // if (sortedStats[0] && sortedStats[0][0] === BOT_ID) {
 //     const response = await axios.get('https://api.giphy.com/v1/gifs/search', {
 //         params: {
@@ -355,7 +355,7 @@ if (content === '!rank') {
 // }
 
 
-// Bot em primeiro (opcional, se quiser uma mensagem diferente)
+
 // if (sortedStats[0] && sortedStats[0][0] === BOT_ID) {
 //     const response = await axios.get('https://api.giphy.com/v1/gifs/search', {
 //         params: {
@@ -369,7 +369,7 @@ if (content === '!rank') {
 // }
 
 
-// Bot em primeiro (opcional, se quiser uma mensagem diferente)
+
 // if (sortedStats[0] && sortedStats[0][0] === BOT_ID) {
 //     const response = await axios.get('https://api.giphy.com/v1/gifs/search', {
 //         params: {
@@ -442,7 +442,7 @@ if (content === '!rank') {
             return;
         }
 
-        // Comando !userinfo <@usuario> para exibir informações do usuário
+        //  !userinfo <@usuario> para exibir informações do usuário
 if (content.startsWith('!userinfo')) {
     const user = message.mentions.users.first() || message.author;
     const member = message.guild.members.cache.get(user.id);
@@ -461,7 +461,7 @@ console.log(`Enviado userinfo para ${message.author.tag} no canal ${message.chan
 }
 
 
-        // Verificação para RPS (Pedra, Papel, Tesoura)
+        // verificacao para RPS (pedra, papel, tesoura)
         if (rpsGames.has(message.author.id) && rpsGames.get(message.author.id).waitingForResponse) {
             const userChoice = content;
             const validChoices = ['pedra', 'papel', 'tesoura'];
@@ -512,7 +512,7 @@ console.log(`Enviado userinfo para ${message.author.tag} no canal ${message.chan
         console.error('Erro ao processar comando:', error.message || error);
         await message.reply('deu erro ao processar o comando');
 
-        // Enviar mensagem para mim
+        // enviar mensagem para mim
         const owner = await client.users.fetch(ownerId);
         if (owner) {
             owner.send(`Erro ocorrido:
