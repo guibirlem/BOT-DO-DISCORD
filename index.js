@@ -156,12 +156,12 @@ client.on('messageCreate', async message => {
             console.log(`Enviado "Tu é pior" para ${message.author.tag} no canal ${message.channel.name}`);
             return;
         }
-        const trriggerPhrases = ['preto', 'macaco', 'escuro', 'pretao'];
+        const trriggerPhrases = ['ptttttt'];
         const lowerCaseContent = content.toLowerCase();
 
         if (trriggerPhrases.some(phrase => lowerCaseContent.includes(phrase))) {
-         await message.reply('RACISTA');
-         console.log(`Enviado "RACIST" para ${message.author.tag} no canal ${message.channel.name}`);
+         await message.reply('R');
+         console.log(`Enviado "RT" para ${message.author.tag} no canal ${message.channel.name}`);
          return;
 }
 
